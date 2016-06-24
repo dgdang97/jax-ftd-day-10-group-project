@@ -17,14 +17,13 @@ public class Server implements Runnable {
 	int port;
 	Map<ClientHandler, Thread> handlerThreads;
 	Map<Socket, String> userList = new HashMap<>();
-	
+
 	public Server(int port) {
 		super();
 		this.port = port;
 		this.handlerThreads = new ConcurrentHashMap<>();
 	}
 
-	
 	@Override
 	public void run() {
 		log.info("Server started on port {}", this.port);
@@ -37,9 +36,8 @@ public class Server implements Runnable {
 				this.handlerThreads.put(clientHandler, clientHandlerThread);
 				clientHandlerThread.start();
 				userList.put(client, clientHandler.username());
-				for (Socket s: userList.keySet()) {
-					log.info("{}", userList.get(s));
-				}
+				ServerChat.addClient(clientHandler);
+				ServerChat.setMessage(userList.get(client) + " has joined the server!");
 			}
 		} catch (IOException e) {
 			log.error("Server fail! oh noes :(", e);
@@ -49,11 +47,13 @@ public class Server implements Runnable {
 					clientHandler.close();
 					this.handlerThreads.get(clientHandler).join();
 					this.handlerThreads.remove(clientHandler);
+					ServerChat.removeClient(clientHandler);
 				} catch (IOException | InterruptedException e) {
 					log.warn("Failed to close handler :/", e);
 				}
 			}
 		}
+
 	}
 
 }

@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.net.SocketAddress;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -39,6 +38,11 @@ public class ClientHandler implements Runnable, Closeable {
 			return username;
 	}
 	
+	public void write(String message) {
+		writer.print(message);
+		writer.flush();
+	}
+	
 	@Override
 	public void run() {
 		try {
@@ -46,17 +50,16 @@ public class ClientHandler implements Runnable, Closeable {
 			log.info("handling client {}", this.client.getRemoteSocketAddress());
 			log.info("Obtaining username for {}", this.client.getRemoteSocketAddress());
 			while (!this.client.isClosed()) {
+				writer.flush();
 				String echo = reader.readLine();
 				log.info("received message [{}] from client {} ({}), echoing...", echo, username, 
 						this.client.getRemoteSocketAddress());
 				Date date = new Date();
-				writer.print("[" + dateFormat.format(date) + "] " + username + ": " + echo);
-				writer.flush();
-
+				ServerChat.setMessage(("[" + dateFormat.format(date) + "] " + username + ": " + echo));
 			}
 			this.close();
 		} catch (IOException e) {
-			log.error("Handler fail! oh noes :(", e);
+			ServerChat.setMessage(username + " has disconnected");
 		} 
 		
 	}
