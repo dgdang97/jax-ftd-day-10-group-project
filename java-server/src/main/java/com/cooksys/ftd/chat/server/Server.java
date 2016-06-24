@@ -3,6 +3,7 @@ package com.cooksys.ftd.chat.server;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -15,13 +16,15 @@ public class Server implements Runnable {
 
 	int port;
 	Map<ClientHandler, Thread> handlerThreads;
-
+	Map<Socket, String> userList = new HashMap<>();
+	
 	public Server(int port) {
 		super();
 		this.port = port;
 		this.handlerThreads = new ConcurrentHashMap<>();
 	}
 
+	
 	@Override
 	public void run() {
 		log.info("Server started on port {}", this.port);
@@ -33,6 +36,10 @@ public class Server implements Runnable {
 				Thread clientHandlerThread = new Thread(clientHandler);
 				this.handlerThreads.put(clientHandler, clientHandlerThread);
 				clientHandlerThread.start();
+				userList.put(client, clientHandler.username());
+				for (Socket s: userList.keySet()) {
+					log.info("{}", userList.get(s));
+				}
 			}
 		} catch (IOException e) {
 			log.error("Server fail! oh noes :(", e);
