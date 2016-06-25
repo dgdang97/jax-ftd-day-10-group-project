@@ -25,7 +25,7 @@ cli
     })
 
     server.on('end', () => {
-      this.log('disconnected from server :(')
+      this.log('disconnected from server. Please input exit.')
     })
   })
   .action(function (command, callback) {

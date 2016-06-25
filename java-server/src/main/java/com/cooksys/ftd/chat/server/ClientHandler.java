@@ -16,7 +16,7 @@ public class ClientHandler implements Runnable, Closeable {
 
 	Logger log = LoggerFactory.getLogger(ClientHandler.class);
 	String username;
-	
+
 	private Socket client;
 	private PrintWriter writer;
 	private BufferedReader reader;
@@ -28,21 +28,22 @@ public class ClientHandler implements Runnable, Closeable {
 		this.writer = new PrintWriter(client.getOutputStream(), true);
 	}
 
-	public String username () throws IOException {
-			writer.print("Welcome to the Server! Please input a username.");
-			writer.flush();
-			username = reader.readLine();
-			writer.print("Your username is now " + username + ". Enjoy your stay!");
-			writer.flush();
-			log.info("Username obtained. Current username: {}, IP address: {}", username, this.client.getRemoteSocketAddress());
-			return username;
+	public String username() throws IOException {
+		writer.print("Welcome to the Server! Please input a username.");
+		writer.flush();
+		username = reader.readLine();
+		writer.print("Your username is now " + username + ". Enjoy your stay!\n");
+		writer.flush();
+		log.info("Username obtained. Current username: {}, IP address: {}", username,
+				this.client.getRemoteSocketAddress());
+		return username;
 	}
-	
+
 	public void write(String message) {
 		writer.print(message);
 		writer.flush();
 	}
-	
+
 	@Override
 	public void run() {
 		try {
@@ -52,21 +53,37 @@ public class ClientHandler implements Runnable, Closeable {
 			while (!this.client.isClosed()) {
 				writer.flush();
 				String echo = reader.readLine();
-				log.info("received message [{}] from client {} ({}), echoing...", echo, username, 
+				log.info("received message [{}] from client {} ({})", echo, username,
 						this.client.getRemoteSocketAddress());
-				Date date = new Date();
-				ServerChat.setMessage(("[" + dateFormat.format(date) + "] " + username + ": " + echo));
+				if (echo.equals("/help")) {
+					help();
+				} else if (echo.equals("/online")) {
+					writer.print(ServerChat.onlineUsers());
+					writer.flush();
+				} else if (echo.equals("/disconnect")) {
+					close();
+				} else if (echo != null) {
+					Date date = new Date();
+					ServerChat.setMessage(("[" + dateFormat.format(date) + "] " + username + ": " + echo));
+				}
 			}
-			this.close();
+			close();
 		} catch (IOException e) {
 			ServerChat.setMessage(username + " has disconnected");
-		} 
-		
+		}
+	}
+
+	public void help() {
+		writer.print("---------Current Commands---------\n");
+		writer.flush();
+		writer.print("/help - Display the Current Commands\n/online - Display the current users online\n/disconnect - Disconnects you from the server");
+		writer.flush();
 	}
 
 	@Override
 	public void close() throws IOException {
 		log.info("closing connection to client {}", this.client.getRemoteSocketAddress());
+		ServerChat.removeUser(username);
 		this.client.close();
 	}
 

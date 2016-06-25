@@ -37,6 +37,7 @@ public class Server implements Runnable {
 				clientHandlerThread.start();
 				userList.put(client, clientHandler.username());
 				ServerChat.addClient(clientHandler);
+				ServerChat.addUser(userList.get(client));
 				ServerChat.setMessage(userList.get(client) + " has joined the server!");
 			}
 		} catch (IOException e) {
