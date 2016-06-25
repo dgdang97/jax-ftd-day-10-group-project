@@ -10,12 +10,28 @@ public class ServerChat {
 	private static String message;
 	
 	public static void setMessage(String message) {
-		ServerChat.message = message;
+		ServerChat.checkMessage(message);
 		for (ClientHandler s: clients) {
 			s.write(ServerChat.message);
 		}
 	}
+	
+	public static String checkMessage(String message) {
+		ServerChat.message = message;
+		ServerChat.profanityFilter(message, "fuck", "cluck");
+		ServerChat.profanityFilter(message, "shit", "crap");
+		ServerChat.profanityFilter(message, "damn", "darn");
+		ServerChat.profanityFilter(message, "fuk", "cluck");
+		return message;
+	}
 
+	public static String profanityFilter(String message, String profanity, String replacement) {
+		if (message.toLowerCase().contains(profanity)) {
+			ServerChat.message = message.toLowerCase().replace(profanity, replacement);
+		}
+		return message;
+	}
+	
 	public static void addClient(ClientHandler client) {
 		ServerChat.clients.add(client);
 	}

@@ -31,9 +31,20 @@ public class ClientHandler implements Runnable, Closeable {
 	public String username() throws IOException {
 		writer.print("Welcome to the Server! Please input a username.");
 		writer.flush();
-		username = reader.readLine();
-		writer.print("Your username is now " + username + ". Enjoy your stay!\n");
-		writer.flush();
+		boolean check = false;
+		while (check == false) {
+			username = reader.readLine();
+			String checkName = ServerChat.checkMessage(username);
+			if (username == checkName) {
+				writer.print("Your username is now " + username + ". Enjoy your stay!\n");
+				writer.flush();
+				check = true;
+			} else {
+				writer.print("Your username contains a banned word. Input a new username.");
+				writer.flush();
+			}
+		}
+
 		log.info("Username obtained. Current username: {}, IP address: {}", username,
 				this.client.getRemoteSocketAddress());
 		return username;
@@ -76,7 +87,8 @@ public class ClientHandler implements Runnable, Closeable {
 	public void help() {
 		writer.print("---------Current Commands---------\n");
 		writer.flush();
-		writer.print("/help - Display the Current Commands\n/online - Display the current users online\n/disconnect - Disconnects you from the server");
+		writer.print(
+				"/help - Display the Current Commands\n/online - Display the current users online\n/disconnect - Disconnects you from the server");
 		writer.flush();
 	}
 
