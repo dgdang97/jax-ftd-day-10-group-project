@@ -1,13 +1,17 @@
 package com.cooksys.ftd.chat.server;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 public class ServerChat {
 
 	private static List<ClientHandler> clients = new ArrayList<>();
 	private static List<String> Users = new ArrayList<>();
 	private static String message;
+	private static Map<String, String> bannedWords = new TreeMap<>();
 	
 	public static void setMessage(String message) {
 		ServerChat.checkMessage(message);
@@ -18,11 +22,10 @@ public class ServerChat {
 	
 	public static String checkMessage(String message) {
 		ServerChat.message = message;
-		ServerChat.profanityFilter(message, "fuck", "cluck");
-		ServerChat.profanityFilter(message, "shit", "crap");
-		ServerChat.profanityFilter(message, "damn", "darn");
-		ServerChat.profanityFilter(message, "fuk", "cluck");
-		return message;
+		for (String s: ServerChat.bannedWords.keySet()) {
+			ServerChat.profanityFilter(message, s, ServerChat.bannedWords.get(s));
+		}
+		return ServerChat.message;
 	}
 
 	public static String profanityFilter(String message, String profanity, String replacement) {
@@ -40,6 +43,14 @@ public class ServerChat {
 		ServerChat.clients.remove(client);
 	}
 	
+	public static String help() {
+		return ("---------Current Commands---------\n"
+				+ "/help - Display the Current Commands\n"
+				+ "/online - Display the current users online\n"
+				+ "/disconnect - Disconnects you from the server");
+
+	}
+	
 	public static String onlineUsers() {
 		String formattedUsers = Users.get(0);
 		for (int i = 1; i < Users.size(); i++) {
@@ -50,9 +61,18 @@ public class ServerChat {
 
 	public static void addUser(String string) {
 		Users.add(string);
+		Collections.sort(Users);
 	}
 
 	public static void removeUser(String username) {
 		Users.remove(username);
+	}
+
+	public static void banWords() {
+		ServerChat.bannedWords.put("fuck", "freak");
+		ServerChat.bannedWords.put("damn", "darn");
+		ServerChat.bannedWords.put("shit", "crap");
+		ServerChat.bannedWords.put("nigger", "person");
+		ServerChat.bannedWords.put("bitch", "lady");
 	}
 }

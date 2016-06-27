@@ -28,7 +28,7 @@ public class ClientHandler implements Runnable, Closeable {
 		this.writer = new PrintWriter(client.getOutputStream(), true);
 	}
 
-	public String username() throws IOException {
+	public void setUsername() throws IOException {
 		writer.print("Welcome to the Server! Please input a username.");
 		writer.flush();
 		boolean check = false;
@@ -38,15 +38,19 @@ public class ClientHandler implements Runnable, Closeable {
 			if (username == checkName) {
 				writer.print("Your username is now " + username + ". Enjoy your stay!\n");
 				writer.flush();
+				ServerChat.addUser(username);
+				ServerChat.setMessage(username + " has joined the server!");
 				check = true;
 			} else {
 				writer.print("Your username contains a banned word. Input a new username.");
 				writer.flush();
 			}
 		}
-
 		log.info("Username obtained. Current username: {}, IP address: {}", username,
 				this.client.getRemoteSocketAddress());
+	}
+
+	public String getUsername() {
 		return username;
 	}
 
@@ -61,13 +65,14 @@ public class ClientHandler implements Runnable, Closeable {
 			SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, MM-dd 'at' hh:mm:ss aa");
 			log.info("handling client {}", this.client.getRemoteSocketAddress());
 			log.info("Obtaining username for {}", this.client.getRemoteSocketAddress());
+			setUsername();
 			while (!this.client.isClosed()) {
 				writer.flush();
 				String echo = reader.readLine();
 				log.info("received message [{}] from client {} ({})", echo, username,
 						this.client.getRemoteSocketAddress());
 				if (echo.equals("/help")) {
-					help();
+					writer.write(ServerChat.help());
 				} else if (echo.equals("/online")) {
 					writer.print(ServerChat.onlineUsers());
 					writer.flush();
@@ -82,14 +87,6 @@ public class ClientHandler implements Runnable, Closeable {
 		} catch (IOException e) {
 			ServerChat.setMessage(username + " has disconnected");
 		}
-	}
-
-	public void help() {
-		writer.print("---------Current Commands---------\n");
-		writer.flush();
-		writer.print(
-				"/help - Display the Current Commands\n/online - Display the current users online\n/disconnect - Disconnects you from the server");
-		writer.flush();
 	}
 
 	@Override

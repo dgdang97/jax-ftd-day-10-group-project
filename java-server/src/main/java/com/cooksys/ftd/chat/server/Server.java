@@ -26,6 +26,8 @@ public class Server implements Runnable {
 
 	@Override
 	public void run() {
+		log.info("Loading banned words");
+		ServerChat.banWords();
 		log.info("Server started on port {}", this.port);
 		try (ServerSocket server = new ServerSocket(this.port)) {
 			while (true) {
@@ -35,10 +37,8 @@ public class Server implements Runnable {
 				Thread clientHandlerThread = new Thread(clientHandler);
 				this.handlerThreads.put(clientHandler, clientHandlerThread);
 				clientHandlerThread.start();
-				userList.put(client, clientHandler.username());
+				userList.put(client, clientHandler.getUsername());
 				ServerChat.addClient(clientHandler);
-				ServerChat.addUser(userList.get(client));
-				ServerChat.setMessage(userList.get(client) + " has joined the server!");
 			}
 		} catch (IOException e) {
 			log.error("Server fail! oh noes :(", e);
